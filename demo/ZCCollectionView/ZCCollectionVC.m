@@ -31,6 +31,7 @@ UICollectionViewDataSource
 #pragma mark -
 - (ZCCollectionView *)collectionView {
     if (!collectionView) {
+        //UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
         ZCCollectionViewLayout *flowLayout = [[ZCCollectionViewLayout alloc] init];
         // cell行间的间距最小距离
         flowLayout.minimumLineSpacing = 10;
@@ -41,16 +42,12 @@ UICollectionViewDataSource
         // 组头视图大小
         flowLayout.headerReferenceSize = CGSizeMake([UIScreen mainScreen].bounds.size.width, 30);
         // 组尾视图大小
-        flowLayout.footerReferenceSize = CGSizeMake([UIScreen mainScreen].bounds.size.width, 30);
+        flowLayout.footerReferenceSize = CGSizeZero;
         // cells的上下左右边界缩进
         flowLayout.sectionInset = UIEdgeInsetsMake(5, 5, 5, 5);
         
-    //        flowLayout.pagingEnabled = YES;
         flowLayout.getLineMaxCountForSection = ^NSUInteger(NSUInteger section) {
-            if (section == 0) {
-                return 1;
-            }
-            return 5;
+            return section == 0 ? 1 : 5;
         };
         
         collectionView = [[ZCCollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:flowLayout];

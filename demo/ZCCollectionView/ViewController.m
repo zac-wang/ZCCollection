@@ -31,14 +31,17 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    NSMutableArray *arr = [NSMutableArray array];
-    if (@available(iOS 13.0, *)) {
-        [arr addObject:[GMMSCHomeCellMultiLabelModel source:[UIImage systemImageNamed:@"network"] imgHeight:13]];
-    }
-    [arr addObject:[GMMSCHomeCellMultiLabelModel sourceText:@"多标签" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:13]}]];
-    [arr addObject:[GMMSCHomeCellMultiLabelModel sourceText:@"展示" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:13]}]];
-    [arr addObject:[GMMSCHomeCellMultiLabelModel sourceText:@"控件" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:13]}]];
+    NSMutableArray *arr = [NSMutableArray arrayWithObjects:@"多标签", @"展示", @"控件", nil];
+    if (@available(iOS 13.0, *)) [arr addObject:[UIImage systemImageNamed:@"network"]];
     self.multiLabel.sourceArray = arr;
+//    self.multiLabel.setupStyle = ^(NSUInteger row, ZCMultiLabelCell *cell) {
+//        cell.textLabel.textColor = row%2 ? [UIColor orangeColor] : [UIColor grayColor];
+//        cell.textLabel.layer.borderColor = cell.textLabel.textColor.CGColor;
+//    };
+    self.multiLabel.setupLayout = ^(NSUInteger row, CGFloat *height, CGFloat *width, CGFloat *paddingLR) {
+        *height = 13.f;
+        *paddingLR = 3.5f;
+    };
 }
 
 

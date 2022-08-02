@@ -24,19 +24,24 @@ UICollectionViewDataSource
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.exchangeView.frame = self.view.bounds;
+    if (@available(iOS 11.0, *)) {
+        self.exchangeView.contentInsetAdjustmentBehavior = YES;
+    } else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        self.automaticallyAdjustsScrollViewInsets = NO;
+#pragma clang diagnostic pop
+    }
+    
+    CGSize screenSize = [UIScreen mainScreen].bounds.size;
+    CGFloat y = CGRectGetMaxY(self.navigationController.navigationBar.frame);
+    self.exchangeView.frame = CGRectMake(0, y, screenSize.width, screenSize.height - y);
+    self.exchangeView.delegate = self;
+    self.exchangeView.dataSource = self;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    
-    CGSize screenSize = [UIScreen mainScreen].bounds.size;
-    if (@available(iOS 11.0, *)) {
-        UIEdgeInsets safeAreaInsets = self.view.safeAreaInsets;
-        self.exchangeView.frame = CGRectMake(0, safeAreaInsets.top, screenSize.width, screenSize.height - safeAreaInsets.top - safeAreaInsets.bottom);
-    }
-    self.exchangeView.delegate = self;
-    self.exchangeView.dataSource = self;
 }
 
 - (IBAction)reload:(UIBarButtonItem *)sender {

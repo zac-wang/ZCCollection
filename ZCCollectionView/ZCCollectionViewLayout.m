@@ -93,7 +93,8 @@
             /// topMinYArr个数不为0时，最大值才是有效的
             self.contentMaxY = [[topMinYArr valueForKeyPath:@"@max.floatValue"] doubleValue];
         }
-        CGFloat sectionItemEndY = self.contentMaxY + sectionInset.bottom;
+        self.contentMaxY += sectionInset.bottom;
+        CGFloat sectionItemEndY = self.contentMaxY;
         
         ZCCollectionViewLayoutAttributes *footerAtt = [self layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionFooter atIndexPath:indexPath];
         if (footerAtt != nil) {

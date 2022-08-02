@@ -119,10 +119,10 @@
 		3D29DF8E2899187A008EE551 /* ZCSwipe */ = {
 			isa = PBXGroup;
 			children = (
-				3D29DF8F2899187A008EE551 /* ZCSwipeViewCell.m */,
+				3D29DF922899187A008EE551 /* ZCSwipeVC.h */,
 				3D29DF902899187A008EE551 /* ZCSwipeVC.m */,
 				3D29DF912899187A008EE551 /* ZCSwipeViewCell.h */,
-				3D29DF922899187A008EE551 /* ZCSwipeVC.h */,
+				3D29DF8F2899187A008EE551 /* ZCSwipeViewCell.m */,
 			);
 			path = ZCSwipe;
 			sourceTree = "<group>";

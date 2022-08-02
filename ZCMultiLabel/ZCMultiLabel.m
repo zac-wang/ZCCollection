@@ -8,22 +8,6 @@
 
 #import "ZCMultiLabel.h"
 
-
-@interface GMMSCHomeCellMultiLabelModel ()
-- (void)sendClickEvent;
-@end
-
-
-@interface ZCMultiLabelCell : UICollectionViewCell
-
-@property(nonatomic, strong) GMMSCHomeCellMultiLabelModel *model;
-
-@property(nonatomic, strong) UILabel *textLabel;
-
-@property(nonatomic, strong) UIImageView *imgView;
-
-@end
-
 @implementation ZCMultiLabelCell
 
 - (UILabel *)textLabel {
@@ -31,6 +15,12 @@
         _textLabel = [[UILabel alloc] initWithFrame:self.bounds];
         _textLabel.textAlignment = NSTextAlignmentCenter;
         _textLabel.numberOfLines = 0;
+        _textLabel.textColor = [UIColor orangeColor];
+        _textLabel.font = [UIFont systemFontOfSize:10.f];
+        
+        _textLabel.layer.borderColor  = [UIColor orangeColor].CGColor;
+        _textLabel.layer.borderWidth  = 0.5f;
+        _textLabel.layer.cornerRadius = 2.f;
         [self.contentView addSubview:_textLabel];
     }
     return _textLabel;
@@ -45,25 +35,23 @@
     return _imgView;
 }
 
-- (void)setModel:(GMMSCHomeCellMultiLabelModel *)model {
-    _model = model;
-    
-    self.textLabel.hidden = YES;
-    self.imgView.hidden = YES;
-    
-    if ([model.source isKindOfClass:[NSAttributedString class]]) {
+- (void)setSource:(id)source {
+    if ([source isKindOfClass:[NSAttributedString class]]) {
         self.textLabel.hidden = NO;
+        self.imgView.hidden = YES;
         
-        self.textLabel.attributedText = model.source;
-    } else if ([model.source isKindOfClass:[UIImage class]]) {
+        self.textLabel.attributedText = source;
+    } else if ([source isKindOfClass:[NSString class]]) {
+        self.textLabel.hidden = NO;
+        self.imgView.hidden = YES;
+        
+        self.textLabel.text = source;
+    } else if ([source isKindOfClass:[UIImage class]]) {
+        self.textLabel.hidden = YES;
         self.imgView.hidden = NO;
         
-        self.imgView.image = (UIImage *)model.source;
+        self.imgView.image = (UIImage *)source;
     }
-    
-    self.textLabel.layer.borderColor  = model.borderColor.CGColor;
-    self.textLabel.layer.cornerRadius = model.cornerRadius;
-    self.textLabel.layer.borderWidth  = model.cornerRadius > 0 ? 0.5 : 0;
 }
 
 - (void)layoutSubviews {
@@ -80,6 +68,8 @@
 UICollectionViewDelegate,
 UICollectionViewDataSource
 >
+
+@property(nonatomic, strong) ZCMultiLabelCell *calculateLayoutCell;
 
 @end
 
@@ -123,14 +113,44 @@ UICollectionViewDataSource
     [self registerClass:[ZCMultiLabelCell class] forCellWithReuseIdentifier:GMKSCHomeCellReuseIdentifier];
 }
 
-- (void)setSourceArray:(NSArray<GMMSCHomeCellMultiLabelModel *> *)sourceArray {
+- (void)setSourceArray:(NSArray *)sourceArray {
     _sourceArray = sourceArray;
     [self reloadData];
 }
 
 #pragma mark - UICollectionViewDelegateFlowLayout
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return self.sourceArray[indexPath.row].cellSize;
+    CGFloat cellHeight = self.frame.size.height - self.collectionViewLayout.sectionInset.top - self.collectionViewLayout.sectionInset.bottom;
+    CGFloat cellWidth = 0.f;
+    CGFloat cellPadding = 3.f;
+    if (self.setupLayout) {
+        self.setupLayout(indexPath.row, &cellHeight, &cellWidth, &cellPadding);
+        
+        /// 若设置了cell大小，则按照指定大小展示，否则根据source计算
+        if (cellHeight > 0 && cellWidth > 0) {
+            return CGSizeMake(cellWidth, cellHeight);
+        }
+    }
+    
+    id source = self.sourceArray[indexPath.row];
+    if ([source isKindOfClass:[NSAttributedString class]]
+        && [(NSAttributedString *)source length] > 0) {
+        self.calculateLayoutCell.textLabel.attributedText = source;
+        if (self.setupStyle) self.setupStyle(indexPath.row, self.calculateLayoutCell);
+        CGRect rect = [self.calculateLayoutCell.textLabel textRectForBounds:CGRectMake(0, 0, self.frame.size.width, cellHeight) limitedToNumberOfLines:self.calculateLayoutCell.textLabel.numberOfLines];
+        return CGSizeMake(rect.size.width + cellPadding*2, cellHeight);
+    } else if ([source isKindOfClass:[NSString class]]) {
+        self.calculateLayoutCell.textLabel.text = source;
+        if (self.setupStyle) self.setupStyle(indexPath.row, self.calculateLayoutCell);
+        CGRect rect = [self.calculateLayoutCell.textLabel textRectForBounds:CGRectMake(0, 0, self.frame.size.width, cellHeight) limitedToNumberOfLines:self.calculateLayoutCell.textLabel.numberOfLines];
+        return CGSizeMake(rect.size.width + cellPadding*2, cellHeight);
+    } else if ([source isKindOfClass:[UIImage class]]) {
+        CGSize size = [(UIImage *)source size];
+        if (size.height > 0) {
+            return CGSizeMake(size.width/size.height*cellHeight + cellPadding*2, cellHeight);
+        }
+    }
+    return CGSizeMake(0.0001, 0);
 }
 
 #pragma mark - UICollectionViewDataSource
@@ -144,7 +164,8 @@ UICollectionViewDataSource
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     ZCMultiLabelCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:GMKSCHomeCellReuseIdentifier forIndexPath:indexPath];
-    cell.model = self.sourceArray[indexPath.row];
+    cell.source = self.sourceArray[indexPath.row];
+    if (self.setupStyle) self.setupStyle(indexPath.row, cell);
     return cell;
 }
 
@@ -154,8 +175,9 @@ UICollectionViewDataSource
 
 #pragma mark 选中
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    GMMSCHomeCellMultiLabelModel *model = self.sourceArray[indexPath.row];
-    [model sendClickEvent];
+    if (self.clickEvent) {
+        self.clickEvent(indexPath.row);
+    }
 }
 
 - (void)collectionView:(UICollectionView *)collectionView willDisplayCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath {
@@ -173,18 +195,25 @@ UICollectionViewDataSource
 }
 */
 
+- (ZCMultiLabelCell *)calculateLayoutCell {
+    if (!_calculateLayoutCell) {
+        _calculateLayoutCell = [[ZCMultiLabelCell alloc] initWithFrame:self.bounds];
+    }
+    return _calculateLayoutCell;
+}
+
 - (void)prepareForInterfaceBuilder {
     [super prepareForInterfaceBuilder];
     
     [self setCollectionViewLayout:[[self class] getFlowLayout] animated:NO];
+    self.collectionViewLayout.sectionInset = UIEdgeInsetsMake(2, 0, 2, 0);
     [self setupCollection];
 
     NSMutableArray *arr = [NSMutableArray array];
     if (@available(iOS 13.0, *)) {
-        [arr addObject:[GMMSCHomeCellMultiLabelModel source:[UIImage systemImageNamed:@"network"] imgHeight:13]];
+        [arr addObject:[UIImage systemImageNamed:@"network"]];
     }
-    [arr addObject:[GMMSCHomeCellMultiLabelModel sourceText:@"多标签" attributes:nil]];
-    [arr addObject:[GMMSCHomeCellMultiLabelModel sourceText:@"展示" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:10]}]];
+    [arr addObjectsFromArray:@[@"多标签", @"展示"]];
     self.sourceArray = arr;
 }
 
