@@ -29,13 +29,19 @@
     self.navBar.setupCellType = ^(ZCMenuViewCell * _Nonnull cell, NSInteger index, BOOL isSelect) {
         [cell.titleBtn setTitle:arr[index] forState:UIControlStateNormal];
     };
-    self.navBar.selectIndexBlock = ^BOOL(int selectIndex) {
+    __weak typeof(self)weakSelf = self;
+    self.navBar.selectIndexBlock = ^(int selectIndex, int oldSelectIndex) {
         NSLog(@"%d", selectIndex);
-        return YES;
+        
+        // 特殊场景：指定标签不需要被选中，执行特定操作
+        if (selectIndex == 2) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                weakSelf.navBar.selectIndex = oldSelectIndex;
+            });
+        }
     };
     
     self.navBar.itemCount = (int)arr.count;
-    [self.navBar reloadData];
 }
 
 @end

@@ -21,9 +21,9 @@
     return _titleBtn;
 }
 
-- (void)setIsSelect:(BOOL)isSelect {
-    self.titleBtn.titleLabel.font = isSelect ? [UIFont boldSystemFontOfSize:18] : [UIFont systemFontOfSize:15];
-    [self.titleBtn setTitleColor:(isSelect ? [UIColor darkGrayColor] : [UIColor grayColor]) forState:UIControlStateNormal];
+- (void)setSelected:(BOOL)selected {
+    self.titleBtn.titleLabel.font = selected ? [UIFont boldSystemFontOfSize:18] : [UIFont systemFontOfSize:15];
+    [self.titleBtn setTitleColor:(selected ? [UIColor blackColor] : [UIColor grayColor]) forState:UIControlStateNormal];
 }
 
 - (void)layoutSubviews {
@@ -68,21 +68,26 @@ UICollectionViewDataSource
     self.showsHorizontalScrollIndicator = NO;
     self.showsVerticalScrollIndicator = NO;
     [self registerClass:[ZCMenuViewCell class] forCellWithReuseIdentifier:@"MyCell"];
+    
+    [self selectItemAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] animated:NO scrollPosition:UICollectionViewScrollPositionNone];
 }
 
 #pragma mark - 数据处理
-- (void)setSelectIndex:(int)selectIndex {
-    if (self.selectIndexBlock
-        && !self.selectIndexBlock(selectIndex)) {
-        return;
-    }
-    
-    _selectIndex = selectIndex;
+- (void)setItemCount:(int)itemCount {
+    _itemCount = itemCount;
     
     [self reloadData];
+}
+
+- (void)setSelectIndex:(int)selectIndex {
+    [self updateSelectIndex:selectIndex isSelectItem:YES];
+}
+
+- (void)reloadData {
+    [super reloadData];
     
-    NSIndexPath *index = [NSIndexPath indexPathForRow:selectIndex inSection:0];
-    [self scrollToItemAtIndexPath:index atScrollPosition:UICollectionViewScrollPositionNone animated:YES];
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:self.selectIndex inSection:0];
+    [self selectItemAtIndexPath:indexPath animated:YES scrollPosition:UICollectionViewScrollPositionNone];
 }
 
 - (void)layoutSubviews {
@@ -106,7 +111,7 @@ UICollectionViewDataSource
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     ZCMenuViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"MyCell" forIndexPath:indexPath];
-    [cell setIsSelect:self.selectIndex == indexPath.row];
+    cell.selected = self.selectIndex == indexPath.row;
     if (self.setupCellType) {
         self.setupCellType(cell, indexPath.row, self.selectIndex == indexPath.row);
     }
@@ -115,7 +120,22 @@ UICollectionViewDataSource
 
 #pragma mark 选中
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    self.selectIndex = (int)indexPath.row;
+    [self updateSelectIndex:(int)indexPath.row isSelectItem:NO];
+}
+
+- (void)updateSelectIndex:(int)selectIndex isSelectItem:(BOOL)isSelect {
+    int oldIndex = _selectIndex;
+    _selectIndex = selectIndex;
+    
+    NSIndexPath *index = [NSIndexPath indexPathForRow:selectIndex inSection:0];
+    if (isSelect) {
+        [self selectItemAtIndexPath:index animated:YES scrollPosition:UICollectionViewScrollPositionNone];
+    }
+    [self scrollToItemAtIndexPath:index atScrollPosition:UICollectionViewScrollPositionNone animated:YES];
+    
+    if (self.selectIndexBlock) {
+        self.selectIndexBlock(selectIndex, oldIndex);
+    }
 }
 
 @end
