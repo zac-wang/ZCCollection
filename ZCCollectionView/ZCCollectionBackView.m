@@ -16,12 +16,11 @@
     return [CAGradientLayer class];
 }
 
-- (void)applyLayoutAttributes:(ZCCollectionViewLayoutAttributes *)layoutAttributes {
-    if ([layoutAttributes isKindOfClass:[ZCCollectionViewLayoutAttributes class]]) {
-        UICollectionView *collectionView = layoutAttributes.layout.collectionView;
-        id<ZCCollectionViewDelegateLayout> delegate = (id<ZCCollectionViewDelegateLayout>)collectionView.delegate;
+- (void)applyLayoutAttributes:(ZCCollectionViewLayoutAttributes *)att {
+    if ([att isKindOfClass:[ZCCollectionViewLayoutAttributes class]]) {
+        id<ZCCollectionViewDelegateLayout> delegate = (id<ZCCollectionViewDelegateLayout>)att.collectionView.delegate;
         if ([delegate respondsToSelector:@selector(collectionView:setupBackgound:forSection:)]) {
-            [delegate collectionView:collectionView setupBackgound:self forSection:layoutAttributes.indexPath.section];
+            [delegate collectionView:att.collectionView setupBackgound:self forSection:att.indexPath.section];
         }
     }
 }

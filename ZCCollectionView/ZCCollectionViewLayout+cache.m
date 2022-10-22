@@ -21,9 +21,6 @@
 {
     self = [super init];
     if (self) {
-        self.sectionHeadersPinToVisibleBounds = YES;
-        self.sectionFootersPinToVisibleBounds = YES;
-        
         [self registerClass:[ZCCollectionBackView class] forDecorationViewOfKind:GMKCollectionElementKindSectionBackground];
     }
     return self;

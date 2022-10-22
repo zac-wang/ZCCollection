@@ -13,6 +13,10 @@
 /// 摆放在哪一列
 @property(nonatomic, assign) NSUInteger column;
 
-@property(nonatomic, weak  ) ZCCollectionViewLayout *layout;
+@property(nonatomic, weak  ) UICollectionView *collectionView;
+
+@property(nonatomic, assign) CGFloat minFrameY;
+
+@property(nonatomic, assign) CGFloat maxFrameY;
 
 @end

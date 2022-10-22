@@ -33,18 +33,12 @@ UICollectionViewDataSource
     if (!collectionView) {
         //UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
         ZCCollectionViewLayout *flowLayout = [[ZCCollectionViewLayout alloc] init];
-        // cell行间的间距最小距离
         flowLayout.minimumLineSpacing = 10;
-        // cell列间的间距最小距离
         flowLayout.minimumInteritemSpacing = 5;
-        // 每个item(cell)的大小
-        //flowLayout.itemSize = CGSizeMake(90, 30);
-        // 组头视图大小
-        flowLayout.headerReferenceSize = CGSizeMake([UIScreen mainScreen].bounds.size.width, 30);
-        // 组尾视图大小
+        flowLayout.headerReferenceSize = CGSizeMake(self.view.frame.size.width, 30);
         flowLayout.footerReferenceSize = CGSizeZero;
-        // cells的上下左右边界缩进
         flowLayout.sectionInset = UIEdgeInsetsMake(5, 5, 5, 5);
+        flowLayout.sectionHeadersPinToVisibleBounds = YES;
         
         flowLayout.getLineMaxCountForSection = ^NSUInteger(NSUInteger section) {
             return section == 0 ? 1 : 5;

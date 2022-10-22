@@ -9,7 +9,9 @@
 #import "ZCCollectionViewLayout+cache.h"
 
 
-@interface ZCCollectionViewLayout ()
+@interface ZCCollectionViewLayout () {
+    CGFloat scrollInsetTop;
+}
 @property(nonatomic, assign) CGFloat contentMaxY;
 @end
 
@@ -17,6 +19,12 @@
 
 - (void)prepareLayout {
     [super prepareLayout];
+    
+    if (@available(iOS 11.0, *)) {
+        scrollInsetTop = self.collectionView.adjustedContentInset.top;
+    } else {
+        scrollInsetTop = 0.f;
+    }
     
     [self.cacheFlowLayoutAttributes removeAllObjects];
     
@@ -36,6 +44,8 @@
         ZCCollectionViewLayoutAttributes *headerAtt = [self layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionHeader atIndexPath:indexPath];
         if (headerAtt != nil) {
             headerAtt.frame = ({CGRect r = headerAtt.frame; r.origin.y = self.contentMaxY; r;});
+            headerAtt.minFrameY = headerAtt.frame.origin.y;
+            headerAtt.zIndex = 10;
             self.contentMaxY = CGRectGetMaxY(headerAtt.frame);
         }
         
@@ -99,8 +109,12 @@
         ZCCollectionViewLayoutAttributes *footerAtt = [self layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionFooter atIndexPath:indexPath];
         if (footerAtt != nil) {
             footerAtt.frame = ({CGRect r = footerAtt.frame; r.origin.y = sectionItemEndY; r;});
+            footerAtt.minFrameY = sectionItemStartY;
+            footerAtt.maxFrameY = footerAtt.frame.origin.y;
+            footerAtt.zIndex = 10;
             self.contentMaxY = CGRectGetMaxY(footerAtt.frame);
         }
+        headerAtt.maxFrameY = sectionItemEndY - headerAtt.frame.size.height;
         
         /// 背景
         id<ZCCollectionViewDelegateLayout> delegate = (id<ZCCollectionViewDelegateLayout>)self.collectionView.delegate;
@@ -117,7 +131,7 @@
                     backAttr.frame = CGRectMake(0, sectionItemStartY, collectionW, sectionItemEndY - sectionItemStartY);
                 }
                 backAttr.zIndex = -1;
-                backAttr.layout = self;
+                backAttr.collectionView = self.collectionView;
             }
         }
     }
@@ -143,10 +157,38 @@
 #pragma mark -
 /// 显示范围变化、Bounds变化、刷新时，重新进行布局
 - (BOOL)shouldInvalidateLayoutForBoundsChange:(CGRect)newBounds {
-    return [super shouldInvalidateLayoutForBoundsChange:newBounds];
+    return YES;
 }
 
 - (NSArray<ZCCollectionViewLayoutAttributes *> *)layoutAttributesForElementsInRect:(CGRect)rect {
+    if (self.sectionHeadersPinToVisibleBounds == NO
+        && self.sectionFootersPinToVisibleBounds == NO) {
+        return self.cacheAttributesList;
+    }
+    
+    NSInteger sections = [self.collectionView numberOfSections];
+    for (int i = 0; i < sections; i++) {
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:i];
+        if (self.sectionHeadersPinToVisibleBounds) {
+            ZCCollectionViewLayoutAttributes *headerAtt = [self layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionHeader atIndexPath:indexPath];
+            if (headerAtt) {
+                CGRect frame = headerAtt.frame;
+                frame.origin.y = MAX(self.collectionView.contentOffset.y+scrollInsetTop, headerAtt.minFrameY);
+                frame.origin.y = MIN(frame.origin.y, headerAtt.maxFrameY);
+                headerAtt.frame = frame;
+            }
+        }
+        if (self.sectionFootersPinToVisibleBounds) {
+            ZCCollectionViewLayoutAttributes *footerAtt = [self layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionFooter atIndexPath:indexPath];
+            if (footerAtt) {
+                CGRect frame = footerAtt.frame;
+                CGFloat maxY = self.collectionView.contentOffset.y+self.collectionView.frame.size.height-footerAtt.frame.size.height;
+                frame.origin.y = MAX(maxY, footerAtt.minFrameY);
+                frame.origin.y = MIN(frame.origin.y, footerAtt.maxFrameY);
+                footerAtt.frame = frame;
+            }
+        }
+    }
     return self.cacheAttributesList;
 }
 
