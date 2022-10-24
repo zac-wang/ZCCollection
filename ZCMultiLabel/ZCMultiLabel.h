@@ -10,9 +10,8 @@
 
 @interface ZCMultiLabelCell : UICollectionViewCell
 
-@property(nonatomic, strong) UILabel *textLabel;
-
-@property(nonatomic, strong) UIImageView *imgView;
+@property(nonatomic, strong) id source;
+@property(nonatomic, strong) UIButton *button;
 
 @end
 
@@ -30,15 +29,14 @@ IB_DESIGNABLE
 
 
 
-
 /// 数据源 (文本、图片、NSAttributedString)
 @property(nonatomic, strong) NSArray *sourceArray;
 
 /// 样式
 @property(nonatomic, copy) void(^setupStyle)(NSUInteger row, ZCMultiLabelCell *cell);
 
-/// 不设置，则会自动设置大小 (不设置width，则会自动计算width)
-@property(nonatomic, copy) void(^setupLayout)(NSUInteger row, CGFloat *height, CGFloat *width, CGFloat *paddingLR);
+/// 可自定义item大小
+@property(nonatomic, copy) CGSize(^setupLayoutSize)(NSUInteger row, CGSize itemSize);
 
 /// 设置item点击事件，与回调的model
 @property(nonatomic, copy) void(^clickEvent)(NSUInteger row);

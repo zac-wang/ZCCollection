@@ -10,55 +10,55 @@
 
 @implementation ZCMultiLabelCell
 
-- (UILabel *)textLabel {
-    if (!_textLabel) {
-        _textLabel = [[UILabel alloc] initWithFrame:self.bounds];
-        _textLabel.textAlignment = NSTextAlignmentCenter;
-        _textLabel.numberOfLines = 0;
-        _textLabel.textColor = [UIColor orangeColor];
-        _textLabel.font = [UIFont systemFontOfSize:10.f];
-        
-        _textLabel.layer.borderColor  = [UIColor orangeColor].CGColor;
-        _textLabel.layer.borderWidth  = 0.5f;
-        _textLabel.layer.cornerRadius = 2.f;
-        [self.contentView addSubview:_textLabel];
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self.contentView addSubview:self.button];
     }
-    return _textLabel;
+    return self;
 }
 
-- (UIImageView *)imgView {
-    if (!_imgView) {
-        _imgView = [[UIImageView alloc] initWithFrame:CGRectZero];
-        _imgView.contentMode = UIViewContentModeScaleAspectFit;
-        [self.contentView addSubview:_imgView];
+- (UIButton *)button {
+    if (!_button) {
+        _button = [UIButton buttonWithType:UIButtonTypeCustom];
+        _button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
+        _button.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        _button.titleLabel.font = [UIFont systemFontOfSize:10.f];
+        _button.userInteractionEnabled = NO;
+        [_button setTitleColor:[UIColor orangeColor] forState:UIControlStateNormal];
     }
-    return _imgView;
+    return _button;
 }
 
 - (void)setSource:(id)source {
+    _source = source;
     if ([source isKindOfClass:[NSAttributedString class]]) {
-        self.textLabel.hidden = NO;
-        self.imgView.hidden = YES;
-        
-        self.textLabel.attributedText = source;
+        [self.button setAttributedTitle:source forState:UIControlStateNormal];
     } else if ([source isKindOfClass:[NSString class]]) {
-        self.textLabel.hidden = NO;
-        self.imgView.hidden = YES;
-        
-        self.textLabel.text = source;
+        [self.button setTitle:source forState:UIControlStateNormal];
     } else if ([source isKindOfClass:[UIImage class]]) {
-        self.textLabel.hidden = YES;
-        self.imgView.hidden = NO;
-        
-        self.imgView.image = (UIImage *)source;
+        [self.button setImage:(UIImage *)source forState:UIControlStateNormal];
     }
 }
 
-- (void)layoutSubviews {
-    [super layoutSubviews];
-    
-    self.textLabel.frame = self.bounds;
-    self.imgView.frame   = self.bounds;
+- (void)setFrame:(CGRect)frame {
+    super.frame = frame;
+    self.button.frame = self.bounds;
+}
+
+- (CGSize)cellSize:(CGSize)maxSize {
+    if (([_source isKindOfClass:[NSAttributedString class]] || [_source isKindOfClass:[NSString class]])
+        && [(NSString *)_source length] > 0) {
+        CGSize size = [self.button.titleLabel textRectForBounds:CGRectMake(0, 0, maxSize.width, maxSize.height) limitedToNumberOfLines:self.button.titleLabel.numberOfLines].size;
+        return size;
+    } else if ([_source isKindOfClass:[UIImage class]]) {
+        CGSize size = [(UIImage *)_source size];
+        if (size.height > 0) {
+            return CGSizeMake(size.width/size.height*maxSize.height, maxSize.height);
+        }
+    }
+    return CGSizeZero;
 }
 
 @end
@@ -120,37 +120,19 @@ UICollectionViewDataSource
 
 #pragma mark - UICollectionViewDelegateFlowLayout
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    CGFloat cellHeight = self.frame.size.height - self.collectionViewLayout.sectionInset.top - self.collectionViewLayout.sectionInset.bottom;
-    CGFloat cellWidth = 0.f;
-    CGFloat cellPadding = 3.f;
-    if (self.setupLayout) {
-        self.setupLayout(indexPath.row, &cellHeight, &cellWidth, &cellPadding);
-        
-        /// 若设置了cell大小，则按照指定大小展示，否则根据source计算
-        if (cellHeight > 0 && cellWidth > 0) {
-            return CGSizeMake(cellWidth, cellHeight);
-        }
+    self.calculateLayoutCell.source = self.sourceArray[indexPath.row];
+    if (self.setupStyle) self.setupStyle(indexPath.row, self.calculateLayoutCell);
+    CGSize maxSize = self.frame.size;
+    if ([self.collectionViewLayout isKindOfClass:[UICollectionViewFlowLayout class]]) {
+        UICollectionViewFlowLayout *layout = self.collectionViewLayout;
+        maxSize.height -= layout.sectionInset.top + layout.sectionInset.bottom;
     }
+    CGSize itemSize = [self.calculateLayoutCell cellSize:maxSize];
     
-    id source = self.sourceArray[indexPath.row];
-    if ([source isKindOfClass:[NSAttributedString class]]
-        && [(NSAttributedString *)source length] > 0) {
-        self.calculateLayoutCell.textLabel.attributedText = source;
-        if (self.setupStyle) self.setupStyle(indexPath.row, self.calculateLayoutCell);
-        CGRect rect = [self.calculateLayoutCell.textLabel textRectForBounds:CGRectMake(0, 0, self.frame.size.width, cellHeight) limitedToNumberOfLines:self.calculateLayoutCell.textLabel.numberOfLines];
-        return CGSizeMake(rect.size.width + cellPadding*2, cellHeight);
-    } else if ([source isKindOfClass:[NSString class]]) {
-        self.calculateLayoutCell.textLabel.text = source;
-        if (self.setupStyle) self.setupStyle(indexPath.row, self.calculateLayoutCell);
-        CGRect rect = [self.calculateLayoutCell.textLabel textRectForBounds:CGRectMake(0, 0, self.frame.size.width, cellHeight) limitedToNumberOfLines:self.calculateLayoutCell.textLabel.numberOfLines];
-        return CGSizeMake(rect.size.width + cellPadding*2, cellHeight);
-    } else if ([source isKindOfClass:[UIImage class]]) {
-        CGSize size = [(UIImage *)source size];
-        if (size.height > 0) {
-            return CGSizeMake(size.width/size.height*cellHeight + cellPadding*2, cellHeight);
-        }
+    if (self.setupLayoutSize) {
+        return self.setupLayoutSize(indexPath.row, itemSize);
     }
-    return CGSizeMake(0.0001, 0);
+    return itemSize;
 }
 
 #pragma mark - UICollectionViewDataSource
@@ -206,7 +188,9 @@ UICollectionViewDataSource
     [super prepareForInterfaceBuilder];
     
     [self setCollectionViewLayout:[[self class] getFlowLayout] animated:NO];
-    self.collectionViewLayout.sectionInset = UIEdgeInsetsMake(2, 0, 2, 0);
+    if ([self.collectionViewLayout isKindOfClass:[UICollectionViewFlowLayout class]]) {
+        [(UICollectionViewFlowLayout *)self.collectionViewLayout setSectionInset:UIEdgeInsetsMake(2, 0, 2, 0)];
+    }
     [self setupCollection];
 
     NSMutableArray *arr = [NSMutableArray array];

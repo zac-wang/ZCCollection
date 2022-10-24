@@ -34,13 +34,17 @@
     NSMutableArray *arr = [NSMutableArray arrayWithObjects:@"多标签", @"展示", @"控件", nil];
     if (@available(iOS 13.0, *)) [arr addObject:[UIImage systemImageNamed:@"network"]];
     self.multiLabel.sourceArray = arr;
-//    self.multiLabel.setupStyle = ^(NSUInteger row, ZCMultiLabelCell *cell) {
-//        cell.textLabel.textColor = row%2 ? [UIColor orangeColor] : [UIColor grayColor];
-//        cell.textLabel.layer.borderColor = cell.textLabel.textColor.CGColor;
-//    };
-    self.multiLabel.setupLayout = ^(NSUInteger row, CGFloat *height, CGFloat *width, CGFloat *paddingLR) {
-        *height = 13.f;
-        *paddingLR = 3.5f;
+    self.multiLabel.setupStyle = ^(NSUInteger row, ZCMultiLabelCell *cell) {
+        if (row == 3) return;
+        cell.button.layer.borderColor  = cell.button.titleLabel.textColor.CGColor;
+        cell.button.layer.borderWidth  = 0.5f;
+        cell.button.layer.cornerRadius = 2.f;
+    };
+    self.multiLabel.setupLayoutSize = ^CGSize(NSUInteger row, CGSize itemSize) {
+        itemSize.width += 3.f*2;
+        itemSize.height = 15;
+        if (row == 3) itemSize.width = itemSize.height;
+        return itemSize;
     };
 }
 
