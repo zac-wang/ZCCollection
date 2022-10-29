@@ -21,7 +21,7 @@
 {
     self = [super init];
     if (self) {
-        [self registerClass:[ZCCollectionBackView class] forDecorationViewOfKind:GMKCollectionElementKindSectionBackground];
+        [self registerClass:[ZCCollectionBackView class] forDecorationViewOfKind:ZCCollectionElementKindSectionBackground];
     }
     return self;
 }
@@ -49,30 +49,6 @@
         minimumInteritemSpacing = [(id<UICollectionViewDelegateFlowLayout>)self.collectionView.delegate collectionView:self.collectionView layout:self minimumInteritemSpacingForSectionAtIndex:section];
     }
     return minimumInteritemSpacing;
-}
-
-- (CGSize)getHeaderReferenceSize:(NSUInteger)section {
-    CGSize headerReferenceSize = self.headerReferenceSize;
-    if ([self.collectionView.delegate respondsToSelector:@selector(collectionView:layout:referenceSizeForHeaderInSection:)]) {
-        headerReferenceSize = [(id<UICollectionViewDelegateFlowLayout>)self.collectionView.delegate collectionView:self.collectionView layout:self referenceSizeForHeaderInSection:section];
-    }
-    return headerReferenceSize;
-}
-
-- (CGSize)getFooterReferenceSize:(NSUInteger)section {
-    CGSize footerReferenceSize = self.footerReferenceSize;
-    if ([self.collectionView.delegate respondsToSelector:@selector(collectionView:layout:referenceSizeForFooterInSection:)]) {
-        footerReferenceSize = [(id<UICollectionViewDelegateFlowLayout>)self.collectionView.delegate collectionView:self.collectionView layout:self referenceSizeForFooterInSection:section];
-    }
-    return footerReferenceSize;
-}
-
-- (CGSize)getCellSize:(NSIndexPath *)indexPath {
-    CGSize size = CGSizeZero;
-    if ([self.collectionView.delegate respondsToSelector:@selector(collectionView:layout:sizeForItemAtIndexPath:)]) {
-        size = [(id<UICollectionViewDelegateFlowLayout>)self.collectionView.delegate collectionView:self.collectionView layout:self sizeForItemAtIndexPath:indexPath];
-    }
-    return size;
 }
 
 - (CGFloat)headViewHeight {
@@ -108,28 +84,23 @@
     NSString *key = [self cacheFlowLayoutAttributesKeyFor:elementKind atIndexPath:indexPath];
     ZCCollectionViewLayoutAttributes *att = [self.cacheFlowLayoutAttributes objectForKey:key];
     if (!att) {
-        CGSize size = CGSizeZero;
         if ([elementKind isEqualToString:UICollectionElementKindSectionHeader]) {
             att = (ZCCollectionViewLayoutAttributes *)[super layoutAttributesForSupplementaryViewOfKind:elementKind atIndexPath:indexPath];
-            size = [self getHeaderReferenceSize:att.indexPath.section];
         } else if ([elementKind isEqualToString:UICollectionElementKindSectionFooter]) {
             att = (ZCCollectionViewLayoutAttributes *)[super layoutAttributesForSupplementaryViewOfKind:elementKind atIndexPath:indexPath];
-            size = [self getFooterReferenceSize:att.indexPath.section];
-        } else if ([elementKind isEqualToString:GMKCollectionElementKindSectionBackground]) {
+        } else if ([elementKind isEqualToString:ZCCollectionElementKindSectionBackground]) {
             att = (ZCCollectionViewLayoutAttributes *)[ZCCollectionViewLayoutAttributes layoutAttributesForDecorationViewOfKind:elementKind withIndexPath:indexPath];
-            size = CGSizeMake(self.collectionView.frame.size.width, 1);
+            att.frame = ({CGRect r = att.frame; r.size = CGSizeMake(1, 1); r;});
         } else {
             att = (ZCCollectionViewLayoutAttributes *)[super layoutAttributesForItemAtIndexPath:indexPath];
-            size = [self getCellSize:att.indexPath];
         }
         
         /// 无效元素忽略
-        if (size.width <= 0 || size.height <= 0) {
+        if (att.frame.size.width <= 0 || att.frame.size.height <= 0) {
             att = nil;
         } else if (att) {
             /// 去除警告
             att = [att copy];
-            att.frame = ({CGRect r = att.frame; r.size = size; r;});
             [self cacheFlowLayoutAttributes:att];
         }
     }

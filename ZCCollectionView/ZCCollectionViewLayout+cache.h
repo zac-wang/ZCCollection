@@ -10,7 +10,7 @@
 #import "ZCCollectionViewLayout.h"
 #import "ZCCollectionViewLayoutAttributes.h"
 
-#define GMKCollectionElementKindSectionBackground @"GMKCollectionElementKindSectionBackground"
+#define ZCCollectionElementKindSectionBackground @"UICollectionElementKindSectionBackground"
 
 
 @interface ZCCollectionViewLayout ()

@@ -122,7 +122,7 @@
             ZCCollectionBackStyle style = [delegate collectionView:self.collectionView setupBackgound:nil forSection:section];
             
             if (style != ZCCollectionBackStyleNone) {
-                ZCCollectionViewLayoutAttributes *backAttr = [self layoutAttributesForSupplementaryViewOfKind:GMKCollectionElementKindSectionBackground atIndexPath:[NSIndexPath indexPathForItem:0 inSection:section]];
+                ZCCollectionViewLayoutAttributes *backAttr = [self layoutAttributesForSupplementaryViewOfKind:ZCCollectionElementKindSectionBackground atIndexPath:[NSIndexPath indexPathForItem:0 inSection:section]];
                 if (style == ZCCollectionBackStyleSectionHeadAndItem) {
                     backAttr.frame = CGRectMake(0, sectionStartY, collectionW, sectionItemEndY - sectionStartY);
                 } else if (style == ZCCollectionBackStyleSectionHeadToFoot) {

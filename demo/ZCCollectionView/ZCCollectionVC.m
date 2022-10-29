@@ -59,8 +59,8 @@ UICollectionViewDataSource
         
         // 注册cell
         [collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:MyCell];
-        [collectionView registerClass:[UICollectionReusableView class] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:MyHeader];
-        [collectionView registerClass:[UICollectionReusableView class] forSupplementaryViewOfKind:UICollectionElementKindSectionFooter withReuseIdentifier:MyFooter];
+        [collectionView registerClass:[UICollectionViewCell class] forSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:MyHeader];
+        [collectionView registerClass:[UICollectionViewCell class] forSupplementaryViewOfKind:UICollectionElementKindSectionFooter withReuseIdentifier:MyFooter];
         
         [self.view addSubview:collectionView];
     }
@@ -135,18 +135,19 @@ UICollectionViewDataSource
 }
 
 - (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath {
+    UICollectionViewCell *view;
     if ([kind isEqualToString:UICollectionElementKindSectionHeader]) {          // Header视图
-        UICollectionReusableView *headerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:MyHeader forIndexPath:indexPath];
-        headerView.backgroundColor = [[UIColor redColor] colorWithAlphaComponent:0.7];
-        return headerView;
-        
+        view = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:MyHeader forIndexPath:indexPath];
+        view.backgroundColor = [UIColor redColor];
     }else if ([kind isEqualToString:UICollectionElementKindSectionFooter]) {    // Footer视图
-        UICollectionReusableView *footerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionFooter withReuseIdentifier:MyFooter forIndexPath:indexPath];
-        footerView.backgroundColor = [[UIColor blueColor] colorWithAlphaComponent:0.7];
-        return footerView;
+        view = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionFooter withReuseIdentifier:MyFooter forIndexPath:indexPath];
+        view.backgroundColor = [UIColor blueColor];
     }
+    if (!view.backgroundView) view.backgroundView = [[UILabel alloc] initWithFrame:CGRectZero];
+    ((UILabel *)view.backgroundView).textAlignment = NSTextAlignmentCenter;
+    ((UILabel *)view.backgroundView).text = [NSString stringWithFormat:@"%d", (int)indexPath.section];
     
-    return nil;
+    return view;
 }
 
 #pragma mark 选中
@@ -170,11 +171,13 @@ UICollectionViewDataSource
         return ZCCollectionBackStyleNone;
     }
     
-//    backView.layer.backgroundColor = [UIColor orangeColor].CGColor;
-    backView.layer.startPoint = CGPointMake(0, 0.5);
-    backView.layer.endPoint = CGPointMake(1.0, 0.5);
-    backView.layer.colors = @[(__bridge id)[[UIColor orangeColor] colorWithAlphaComponent:0.5].CGColor,(__bridge id)[[UIColor yellowColor] colorWithAlphaComponent:0.5].CGColor];
-    backView.layer.cornerRadius = 20;
+    if (backView) {
+        //backView.layer.backgroundColor = [UIColor orangeColor].CGColor;
+        backView.layer.startPoint = CGPointMake(0, 0.5);
+        backView.layer.endPoint = CGPointMake(1.0, 0.5);
+        backView.layer.colors = @[(__bridge id)[[UIColor orangeColor] colorWithAlphaComponent:0.5].CGColor,(__bridge id)[[UIColor yellowColor] colorWithAlphaComponent:0.5].CGColor];
+        backView.layer.cornerRadius = 20;
+    }
     return ZCCollectionBackStyleSectionAllItem;
 }
 
