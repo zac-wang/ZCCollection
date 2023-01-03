@@ -10,7 +10,7 @@
 
  * 瀑布流控件：
   *  1、支持多样式混排展示，部分section单列，部分section瀑布流
-  *  2、接入简单，仅比原生UICollectionViewFlowLayout多一个方法调用
+  *  2、接入简单，基于UICollectionViewFlowLayout，修改布局类名即可变为瀑布流
   *  3、支持section背景设置（效果：可设置渐变、圆角、阴影等，范围：可覆盖section下的item，也是可以包括头部）
 
 <h3 id="-----2-----" align = "center">2、演示</h3>
