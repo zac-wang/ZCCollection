@@ -47,6 +47,7 @@ UICollectionViewDataSource
         collectionView = [[ZCCollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:flowLayout];
         collectionView.backgroundColor = [UIColor clearColor];
         collectionView.showsVerticalScrollIndicator = NO;
+        collectionView.alwaysBounceVertical = YES;
         collectionView.delegate = self;
         collectionView.dataSource = self;
         

@@ -32,9 +32,6 @@ typedef NS_ENUM(NSInteger, ZCCollectionBackStyle) {
 
 @interface ZCCollectionViewLayout : UICollectionViewFlowLayout
 
-/// 不够一页时也可以下拉 (否则此时无法下拉 触发下拉刷新事件), 默认不处理
-@property(nonatomic, assign) BOOL autoInsatiableScroll;
-
 /// 设置列数
 @property(nonatomic, copy) NSUInteger(^getLineMaxCountForSection)(NSUInteger section);
 

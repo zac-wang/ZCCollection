@@ -195,11 +195,8 @@
 /// 用来计算collectionView的contentSize
 - (CGSize)collectionViewContentSize {
     CGFloat contentH = self.contentMaxY;
-    if (self.autoInsatiableScroll) {
-        /// contentSize不满一页，设置为collectionView.height以支持下拉刷新手势
-        contentH = MAX(contentH, self.collectionView.frame.size.height);
-    } else if (self.contentMaxY <= 0 || self.cacheAttributesList.count <= 0) {
-        /// 无数据不支持滑动
+    /// 无数据不支持滑动
+    if (contentH < 0 || self.cacheAttributesList.count <= 0) {
         contentH = 0.f;
     }
     return CGSizeMake(self.collectionView.contentSize.width, contentH);
